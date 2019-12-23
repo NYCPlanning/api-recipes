@@ -1,16 +1,18 @@
 import os
-from flask import Flask, request, jsonify
 import json
+from flask import Flask, request, jsonify
 from utils.s3 import make_client, bucket
 from utils.etl import engine, ftp_prefix, migrate_table
 from sqlalchemy import create_engine
-from datetime import datetime
-import pandas as pd
-from cook import Archiver
+from cook import Archiver, Importer
 import pandas as pd
 
 app = Flask(__name__)
 client = make_client()
+
+@app.route('/', methods=['GET'])
+def welcome(): 
+    return jsonify('welcome!!!!!!')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -82,6 +84,33 @@ def migrate():
         return jsonify({
             'status': 'failure', 
             'schema_name': config, 
+        })
+
+@app.route('/import', methods=['POST'])
+def importing():
+    """
+    import table from database A to B
+    may considering merging this endpoint
+    with migrate 
+    """
+    config=request.get_json()
+    schema_name=config.get('schema_name')
+    version=config.get('version', 'latest')
+    try:
+        importer = Importer(config.get('recipe_engine', engine), 
+                            config.get('build_engine'))
+        importer.import_table(schema_name=schema_name, 
+                                version=version)
+        return jsonify({
+            'status': 'success', 
+            'schema_name': schema_name,
+            'version': version
+        })
+    except: 
+        return jsonify({
+            'status': 'failure', 
+            'schema_name': schema_name,
+            'version': version 
         })
 
 # @app.route('/download', methods=['GET'])

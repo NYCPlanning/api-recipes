@@ -3,4 +3,5 @@ flask
 boto3
 pathlib
 requests
+gunicorn
 git+git://github.com/NYCPlanning/cook.git@master#egg=cook
