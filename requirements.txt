@@ -4,4 +4,3 @@ boto3
 pathlib
 requests
 git+git://github.com/NYCPlanning/cook.git@master#egg=cook
-*.DS_Store
