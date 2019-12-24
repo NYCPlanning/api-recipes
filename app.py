@@ -74,16 +74,21 @@ def migrate():
     to table_name.version in B
     """
     config=request.get_json()
+    schema_name=config.get('schema_name')
     try:
         migrate_table(**config)
+        config.pop('src_engine')
+        config.pop('dst_engine')
         return jsonify({
             'status': 'success', 
-            'schema_name': config, 
+            'config': config, 
         })
-    except: 
+    except:
+        config.pop('src_engine')
+        config.pop('dst_engine')
         return jsonify({
             'status': 'failure', 
-            'schema_name': config, 
+            'config': config, 
         })
 
 @app.route('/import', methods=['POST'])
@@ -97,7 +102,7 @@ def importing():
     schema_name=config.get('schema_name')
     version=config.get('version', 'latest')
     try:
-        importer = Importer(config.get('recipe_engine', engine), 
+        importer = Importer(config.get('recipe_engine'), 
                             config.get('build_engine'))
         importer.import_table(schema_name=schema_name, 
                                 version=version)
